@@ -1,10 +1,33 @@
 open Reprocessing;
 
-let snakeBaseSize = 10;
-let step = 10;
-let redrawThreshold = 0.5;
-let initialDrawingTime = 0.;
-let initialSnake = [(50, 50), (50, 60), (50, 70)];
+module Snake = {
+  let baseSize = 10;
+  let step = 10;
+  let initialState = [(50, 50), (50, 60), (50, 70)];
+
+  let move = snake => List.map(((x, y)) => (x, y + step), snake);
+};
+
+module Gameboard = {
+  let redrawThreshold = 0.5;
+  let initialDrawingTime = 0.;
+
+  let drawBoard = (env) => {
+    Draw.background(Utils.color(~r=255, ~g=217, ~b=229, ~a=255), env);
+    Draw.fill(Utils.color(~r=41, ~g=166, ~b=244, ~a=255), env);
+  };
+
+  let drawSnake = (snake, env) =>
+    List.iter(
+      pos => Draw.rect(~pos, ~width=Snake.baseSize, ~height=Snake.baseSize, env),
+      snake,
+    );
+
+  let init = (snake, env) => {
+    drawBoard(env);
+    drawSnake(snake, env)
+  };
+};
 
 type stateT = {
   totalDrawingTime: float,
@@ -12,8 +35,8 @@ type stateT = {
 };
 
 let initialState = {
-  totalDrawingTime: initialDrawingTime,
-  snake: initialSnake,
+  totalDrawingTime: Gameboard.initialDrawingTime,
+  snake: Snake.initialState,
 };
 
 let setup = env => {
@@ -21,24 +44,14 @@ let setup = env => {
   initialState;
 };
 
-let drawSnake = (snake, env) =>
-  List.iter(
-    pos => Draw.rect(~pos, ~width=snakeBaseSize, ~height=snakeBaseSize, env),
-    snake,
-  );
-
-let move = snake => List.map(((x, y)) => (x, y + step), snake);
-
 let draw = ({snake, totalDrawingTime}, env) => {
   let deltaTime = Env.deltaTime(env);
   let totalDrawingTime = totalDrawingTime +. deltaTime;
 
-  Draw.background(Utils.color(~r=255, ~g=217, ~b=229, ~a=255), env);
-  Draw.fill(Utils.color(~r=41, ~g=166, ~b=244, ~a=255), env);
-  drawSnake(snake, env);
+  Gameboard.init(snake, env);
 
-  totalDrawingTime > redrawThreshold ?
-    {snake: move(snake), totalDrawingTime: initialDrawingTime} :
+  totalDrawingTime > Gameboard.redrawThreshold ?
+    {snake: Snake.move(snake), totalDrawingTime: Gameboard.initialDrawingTime} :
     {snake, totalDrawingTime};
 };
 
