@@ -1,5 +1,10 @@
 open Reprocessing;
 
+module ListUtils = {
+  let last = (input: list('a)): 'a =>
+    List.nth(input, List.length(input) - 1);
+};
+
 module Snake = {
   type snakeT = (int, int);
   type directionT =
@@ -10,20 +15,28 @@ module Snake = {
 
   let baseSize: int = 10;
   let step: int = 10;
-  let initialState: list(snakeT) = [(50, 50), (50, 60), (50, 70)];
+  let initialState: list(snakeT) = [
+    (50, 50),
+    (50, 60),
+    (50, 70),
+    (50, 80),
+  ];
   let initialDirection: directionT = Down;
 
-  let move = (snake: list(snakeT), nextDirection: directionT): list(snakeT) =>
-    List.map(
-      ((x, y)) =>
-        switch (nextDirection) {
+  let move = (snake: list(snakeT), ~next: directionT): list(snakeT) =>
+    switch (snake) {
+    | [_, ...tail] =>
+      let (x, y) = ListUtils.last(tail);
+      let head =
+        switch (next) {
         | Left => (x - step, y)
         | Right => (x + step, y)
         | Up => (x, y - step)
         | Down => (x, y + step)
-        },
-      snake,
-    );
+        };
+      tail @ [head];
+    | [] => snake
+    };
 };
 
 module Gameboard = {
@@ -76,8 +89,8 @@ type stateT = {
 
 let initialState: stateT = {
   totalDrawingTime: Gameboard.initialDrawingTime,
-  snake: Snake.initialState,
   currentDirection: Snake.initialDirection,
+  snake: Snake.initialState,
 };
 
 let setup = (env: glEnvT): stateT => {
@@ -97,7 +110,7 @@ let draw = (state: stateT, env: glEnvT): stateT => {
   totalDrawingTime > Gameboard.redrawThreshold ?
     {
       ...state,
-      snake: Snake.move(snake, nextDirection),
+      snake: Snake.move(snake, ~next=nextDirection),
       totalDrawingTime: Gameboard.initialDrawingTime,
     } :
     {...state, totalDrawingTime, currentDirection: nextDirection};
