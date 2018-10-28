@@ -5,17 +5,22 @@ module ListUtils = {
     List.nth(input, List.length(input) - 1);
 };
 
+module Dot = {
+  type t = (int, int);
+
+  let width: int = 10;
+  let height: int = 10;
+};
+
 module Snake = {
-  type snakeT = (int, int);
   type directionT =
     | Left
     | Right
     | Up
     | Down;
 
-  let baseSize: int = 10;
   let step: int = 10;
-  let initialState: list(snakeT) = [
+  let initialState: list(Dot.t) = [
     (50, 50),
     (50, 60),
     (50, 70),
@@ -23,7 +28,7 @@ module Snake = {
   ];
   let initialDirection: directionT = Down;
 
-  let move = (snake: list(snakeT), ~next: directionT): list(snakeT) =>
+  let move = (snake: list(Dot.t), ~next: directionT): list(Dot.t) =>
     switch (snake) {
     | [_, ...tail] =>
       let (x, y) = ListUtils.last(tail);
@@ -48,12 +53,14 @@ module Gameboard = {
     Draw.fill(Utils.color(~r=0, ~g=0, ~b=0, ~a=255), env);
   };
 
-  let drawSnake = (snake: list(Snake.snakeT), env: glEnvT): unit =>
+  let drawDots = (dots: list(Dot.t), env: glEnvT): unit =>
     List.iter(
-      pos =>
-        Draw.rect(~pos, ~width=Snake.baseSize, ~height=Snake.baseSize, env),
-      snake,
+      pos => Draw.rect(~pos, ~width=Dot.width, ~height=Dot.height, env),
+      dots,
     );
+
+  let drawSnake = (snake: list(Dot.t), env: glEnvT): unit =>
+    drawDots(snake, env);
 
   let handleKeyPressed =
       (env: glEnvT, currentDirection: Snake.directionT): Snake.directionT => {
@@ -61,6 +68,7 @@ module Gameboard = {
     let isRightKeyPressed = Env.keyPressed(Right, env);
     let isUpKeyPressed = Env.keyPressed(Up, env);
     let isDownKeyPressed = Env.keyPressed(Down, env);
+
     switch (
       isLeftKeyPressed,
       isRightKeyPressed,
@@ -75,7 +83,7 @@ module Gameboard = {
     };
   };
 
-  let init = (snake: list(Snake.snakeT), env: glEnvT): unit => {
+  let init = (snake: list(Dot.t), env: glEnvT): unit => {
     drawBoard(env);
     drawSnake(snake, env);
   };
@@ -84,7 +92,7 @@ module Gameboard = {
 type stateT = {
   totalDrawingTime: float,
   currentDirection: Snake.directionT,
-  snake: list(Snake.snakeT),
+  snake: list(Dot.t),
 };
 
 let initialState: stateT = {
