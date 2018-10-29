@@ -45,22 +45,28 @@ module Snake = {
 };
 
 module Gameboard = {
+  open Reprocessing_Constants;
+
   let redrawThreshold: float = 0.5;
   let initialDrawingTime: float = 0.;
 
   let drawBoard = (env: glEnvT): unit => {
-    Draw.background(Utils.color(~r=255, ~g=255, ~b=255, ~a=255), env);
-    Draw.fill(Utils.color(~r=0, ~g=0, ~b=0, ~a=255), env);
+    Draw.background(white, env);
+    Draw.fill(black, env);
   };
 
-  let drawDots = (dots: list(Dot.t), env: glEnvT): unit =>
+  let drawDots =
+      (env: glEnvT, ~dots: list(Dot.t), ~color: colorT=black, ()): unit =>
     List.iter(
-      pos => Draw.rect(~pos, ~width=Dot.width, ~height=Dot.height, env),
+      pos => {
+        Draw.rect(~pos, ~width=Dot.width, ~height=Dot.height, env);
+        Draw.fill(color, env);
+      },
       dots,
     );
 
   let drawSnake = (snake: list(Dot.t), env: glEnvT): unit =>
-    drawDots(snake, env);
+    drawDots(env, ~dots=snake, ());
 
   let handleKeyPressed =
       (env: glEnvT, currentDirection: Snake.directionT): Snake.directionT => {
