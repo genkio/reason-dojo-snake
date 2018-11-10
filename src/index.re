@@ -50,6 +50,15 @@ module Gameboard = {
   let redrawThreshold: float = 0.5;
   let initialDrawingTime: float = 0.;
 
+  let generateApple = (): Dot.t => {
+    Random.init(int_of_float(Unix.gettimeofday()));
+    (Random.int(500), Random.int(500));
+  };
+
+  let generateApples = (~count: int): list(Dot.t) =>
+    /* FIXME: apples are generated with the same coordinates */
+    Array.make(count, generateApple()) |> Array.to_list;
+
   let drawBoard = (env: glEnvT): unit => {
     Draw.background(white, env);
     Draw.fill(black, env);
@@ -65,8 +74,11 @@ module Gameboard = {
       dots,
     );
 
-  let drawSnake = (snake: list(Dot.t), env: glEnvT): unit =>
+  let drawSnake = (env: glEnvT, snake: list(Dot.t)): unit =>
     drawDots(env, ~dots=snake, ());
+
+  let drawApples = (env: glEnvT, apples: list(Dot.t)): unit =>
+    drawDots(env, ~dots=apples, ~color=red, ());
 
   let handleKeyPressed =
       (env: glEnvT, currentDirection: Snake.directionT): Snake.directionT => {
@@ -89,9 +101,10 @@ module Gameboard = {
     };
   };
 
-  let init = (snake: list(Dot.t), env: glEnvT): unit => {
+  let init = (env: glEnvT, snake: list(Dot.t), apples: list(Dot.t)): unit => {
     drawBoard(env);
-    drawSnake(snake, env);
+    drawSnake(env, snake);
+    drawApples(env, apples);
   };
 };
 
@@ -99,12 +112,14 @@ type stateT = {
   totalDrawingTime: float,
   currentDirection: Snake.directionT,
   snake: list(Dot.t),
+  apples: list(Dot.t),
 };
 
 let initialState: stateT = {
   totalDrawingTime: Gameboard.initialDrawingTime,
   currentDirection: Snake.initialDirection,
   snake: Snake.initialState,
+  apples: Gameboard.generateApples(~count=3),
 };
 
 let setup = (env: glEnvT): stateT => {
@@ -113,11 +128,11 @@ let setup = (env: glEnvT): stateT => {
 };
 
 let draw = (state: stateT, env: glEnvT): stateT => {
-  let {snake, totalDrawingTime, currentDirection} = state;
+  let {snake, apples, totalDrawingTime, currentDirection} = state;
   let deltaTime: float = Env.deltaTime(env);
   let totalDrawingTime: float = totalDrawingTime +. deltaTime;
 
-  Gameboard.init(snake, env);
+  Gameboard.init(env, snake, apples);
   let nextDirection: Snake.directionT =
     Gameboard.handleKeyPressed(env, currentDirection);
 
