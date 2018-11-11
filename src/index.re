@@ -51,13 +51,15 @@ module Gameboard = {
   let initialDrawingTime: float = 0.;
 
   let generateApple = (): Dot.t => {
-    Random.init(int_of_float(Unix.gettimeofday()));
-    (Random.int(500), Random.int(500));
+    Random.self_init();
+    /* TODO: get rid of magic number */
+    let x = Random.int(50) * Dot.width;
+    let y = Random.int(50) * Dot.height;
+    (x, y);
   };
 
   let generateApples = (~count: int): list(Dot.t) =>
-    /* FIXME: apples are generated with the same coordinates */
-    Array.make(count, generateApple()) |> Array.to_list;
+    Array.make(count, ()) |> Array.to_list |> List.map(() => generateApple());
 
   let drawBoard = (env: glEnvT): unit => {
     Draw.background(white, env);
